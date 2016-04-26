@@ -187,7 +187,7 @@ func MarkPresent(rw http.ResponseWriter, r *http.Request) {
 		//Check If Student is not Proxying - Check deviceid
 		if deviceid==hasStudentRegistered.Rows[0].Id {
 			//Do duplication Checks 
-			response,_ := http.Get(BaseUrl+"/class273/_design/classattendance/_view/isstudentpresent?key="+id)
+			response,_ := http.Get(BaseUrl+"/+class"+classid+"/_design/classattendance/_view/isstudentpresent?key="+id)
 			defer response.Body.Close()
 			decoder := json.NewDecoder(response.Body)
 			decoder.Decode(&isStudentPresent)
