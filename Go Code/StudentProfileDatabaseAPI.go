@@ -22,6 +22,16 @@ type HandleGenericCouchJSON struct{
 			Value string `json:"value"`
 		}`json:"rows"`
 }
+//To Hold the json response when calling CouchDB's getbluetoothid api
+type HandleBluetoothIdCouchJSON struct{
+	Total_rows int `json:"total_rows"`
+	Offset int `json:"offset"`
+	Rows []struct{
+			Id string `json:"id"`
+			Key int `json:"key"`
+			Value int `json:"value"`
+		}`json:"rows"`
+}
 //To handle JSON reurned from calling myo own CheckStudentValid API
 type ValidStudent struct{
 
@@ -39,6 +49,17 @@ type StudentFull struct{
 	Rev string `json:"_rev"`
 	Id string `json:"_id"`
 }
+//To store the list of classes student has enrolled that is returned when calling my studentenrolled api
+type StudentEnrolled struct{
+	Id string `json:"id"`
+	Key int `json:"key"`
+	Value []int `json:"value"`
+}
+//To build the Json to send back after successful register
+type RegisterSuccess struct{
+	DeviceId string `json:"deviceid"`
+	BluetoothIds []int `json:"bluetoothids"`
+}
 
 var uniqueid UUID
 var hasStudentRegistered HandleGenericCouchJSON
@@ -48,6 +69,9 @@ var student Student
 var studentFull StudentFull
 var studentPasswordData HandleGenericCouchJSON
 var isStudentPresent HandleGenericCouchJSON
+var studentEnrolled StudentEnrolled
+var handleBluetoothIdCouchJson HandleBluetoothIdCouchJSON
+var registerSuccess RegisterSuccess
 
 //Get Unique UUID from CouchDB
 func getUUID() string{
@@ -88,7 +112,7 @@ func doGetPassword(id string){
 }
 
 //Helper Funtion does GET to check if student is valid(ie enrolled in college)
-func doGetEnrolled(id string){
+func doGetValidStudent(id string){
 	response,_ := http.Get("http://localhost:3000/checkstudentvalid/"+id)
 	defer response.Body.Close()
 	decoder := json.NewDecoder(response.Body)
@@ -96,7 +120,17 @@ func doGetEnrolled(id string){
 	if err != nil {
 		panic(err)
 	}
+}
 
+//Helper Function to GET the list of classes student has enrolled for
+func doGetEnrolled(id string){
+	response,_ := http.Get("http://localhost:3000/studentenrolled/"+id)
+	defer response.Body.Close()
+	decoder := json.NewDecoder(response.Body)
+	err := decoder.Decode(&studentEnrolled)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //Helper Funtion does PUT to Insert a new student record into the table
@@ -128,6 +162,9 @@ func doDelete(id string){
 	client.Do(request)
 }
 
+//Main RegisterStudent function - REST
+//Accepts a StudentId, password and checks if student is already registered. Else checks if student is valid. If valid, Insters into CouchDB.
+//Returns the unique device id and the list of PI MAC addresses to store
 func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id := params.Get(":id")
@@ -140,7 +177,7 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 	}
 	//Check if student is a valid student enrolled in college
 	if len(hasStudentRegistered.Rows)==0 {
-		doGetEnrolled(id)
+		doGetValidStudent(id)
 		if validStudent.Ans=="yes"{
 			//To-Do Do JSON Unmarshall
 			student.StudentId,_=strconv.Atoi(id)
@@ -148,8 +185,21 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 			a, _ := json.Marshal(student)
 			uuid:=getUUID()
 			doPut(string([]byte(a)),uuid)
+			//Get list of classes student is enrolled in
+			doGetEnrolled(id)
+			//Get the BluetoothIds for all the classes student has enrolled in
+			registerSuccess.DeviceId=uuid
+			for i:=0; i<len(studentEnrolled.Value);i++ {
+				UrlGet:=BaseUrl+"/bluetoothid/_design/getbluetoothid/_view/bluetoothid?key="+strconv.Itoa(studentEnrolled.Value[i])
+				response,_ := http.Get(UrlGet)
+				defer response.Body.Close()
+				decoder := json.NewDecoder(response.Body)
+				decoder.Decode(&handleBluetoothIdCouchJson)
+				registerSuccess.BluetoothIds=append(registerSuccess.BluetoothIds,handleBluetoothIdCouchJson.Rows[0].Value)
+			}
 			rw.WriteHeader(http.StatusCreated)
-			rw.Write([]byte(`{"deviceid":"`+uuid+`"}`))
+			b,_:=json.Marshal(registerSuccess)
+			rw.Write([]byte(b))
 		}
 		if validStudent.Ans=="no" {
 			a:=`{"error":"Not Valid Student"}`
@@ -158,6 +208,8 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//Main DeleteStudent function - REST
+//Accepts a StudentId, password and checks if id and password match. If they do, delete a student record
 func DeleteStudent(rw http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id := params.Get(":id")
@@ -176,7 +228,8 @@ func DeleteStudent(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-
+//Main MarkPresent function - REST
+//Accepts a StudentId, deviceId and classId. Check if valid deviceId. If yes, check if student already present. IF no, mark student as present
 func MarkPresent(rw http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id := params.Get(":id")
@@ -198,6 +251,8 @@ func MarkPresent(rw http.ResponseWriter, r *http.Request) {
 			if len(isStudentPresent.Rows)==0 {
 				//To-Do check if student is allowed to enter the class
 				doPutAttendance(classid,`{"studentid":`+id+`}`,getUUID())
+				a:=`{"success":"Student is marked present"}`
+				rw.Write([]byte(a))	
 			}
 		}
 		if deviceid!=hasStudentRegistered.Rows[0].Id {

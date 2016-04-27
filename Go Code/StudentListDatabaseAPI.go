@@ -116,7 +116,7 @@ func doGetEnroll(id string){
 	}
 }
 
-//Main ADD Student function - REST
+//Main AddStudent function - REST
 //Accepts a StudentId, RegisteredClasses[], Student Name and Insters into CouchDB
 func AddStudent(rw http.ResponseWriter, r *http.Request) {
 	var student Student
