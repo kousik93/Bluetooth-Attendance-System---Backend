@@ -29,13 +29,13 @@ type HandleBluetoothIdCouchJSON struct{
 	Rows []struct{
 			Id string `json:"id"`
 			Key int `json:"key"`
-			Value int `json:"value"`
+			Value string `json:"value"`
 		}`json:"rows"`
 }
 //To handle JSON reurned from calling myo own CheckStudentValid API
 type ValidStudent struct{
 
-	Ans string `json:"ans"`
+	Status string `json:"status"`
 }
 //To store the details of the Student to be inserted in RegisterStudent() 
 type Student struct{
@@ -58,7 +58,7 @@ type StudentEnrolled struct{
 //To build the Json to send back after successful register
 type RegisterSuccess struct{
 	DeviceId string `json:"deviceid"`
-	BluetoothIds []int `json:"bluetoothids"`
+	BluetoothIds []string `json:"bluetoothids"`
 }
 
 var uniqueid UUID
@@ -178,7 +178,7 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 	//Check if student is a valid student enrolled in college
 	if len(hasStudentRegistered.Rows)==0 {
 		doGetValidStudent(id)
-		if validStudent.Ans=="yes"{
+		if validStudent.Status=="yes"{
 			//To-Do Do JSON Unmarshall
 			student.StudentId,_=strconv.Atoi(id)
 			student.Password=pass
@@ -189,6 +189,7 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 			doGetEnrolled(id)
 			//Get the BluetoothIds for all the classes student has enrolled in
 			registerSuccess.DeviceId=uuid
+			registerSuccess.BluetoothIds=nil
 			for i:=0; i<len(studentEnrolled.Value);i++ {
 				UrlGet:=BaseUrl+"/bluetoothid/_design/getbluetoothid/_view/bluetoothid?key="+strconv.Itoa(studentEnrolled.Value[i])
 				response,_ := http.Get(UrlGet)
@@ -201,7 +202,7 @@ func RegisterStudent(rw http.ResponseWriter, r *http.Request) {
 			b,_:=json.Marshal(registerSuccess)
 			rw.Write([]byte(b))
 		}
-		if validStudent.Ans=="no" {
+		if validStudent.Status=="no" {
 			a:=`{"error":"Not Valid Student"}`
 			rw.Write([]byte(a))
 		}	
@@ -223,7 +224,12 @@ func DeleteStudent(rw http.ResponseWriter, r *http.Request) {
 	if len(studentPasswordData.Rows)>0 {
 		if studentPasswordData.Rows[0].Value==pass {
 			doDelete(studentPasswordData.Rows[0].Id)
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(""))
 		}
+	}
+	if len(studentPasswordData.Rows)==0 {
+		rw.Write([]byte(`{"error":"Student does not exist"}`))
 	}
 
 }

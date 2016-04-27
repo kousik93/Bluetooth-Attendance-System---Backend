@@ -180,11 +180,11 @@ func CheckStudentValid(rw http.ResponseWriter, r *http.Request) {
 	doGetName(id)
 	var a string
 	if len(studentNameAPI.Rows)>0 {
-		a=`{"ans":"yes"}`
+		a=`{"status":"yes"}`
 	}
 
 	if len(studentNameAPI.Rows)==0 {
-		a=`{"ans":"no"}`
+		a=`{"status":"no"}`
 	}
 	rw.WriteHeader(http.StatusOK)
 	rw.Write([]byte(a))
