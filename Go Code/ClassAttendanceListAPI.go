@@ -72,7 +72,7 @@ var classListFull ClassListFull
 
 //Get Unique UUID from CouchDB
 func getUUID() string{
-	response,_ := http.Get("https://couchdb-80f683.smileupps.com/_uuids")
+	response,_ := http.Get(BaseUrl+"/_uuids")
 	defer response.Body.Close()
 	decoder := json.NewDecoder(response.Body)
 	err := decoder.Decode(&uniqueid)
@@ -90,6 +90,7 @@ func GetAttendanceList(rw http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 	decoder := json.NewDecoder(response.Body)
 	decoder.Decode(&attendanceList)
+	studentNameList=nil
 	for i:=0; i<len(attendanceList.Rows); i++ {
 		key:=strconv.Itoa(attendanceList.Rows[i].Key)
 		UrlGet:="http://localhost:3000/studentname/"+key
@@ -180,7 +181,7 @@ func DeleteClass(rw http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(response.Body)
 	decoder.Decode(&handleClassListCouchJSON)
 	//Using record id get rev
-	response,_ = http.Get("https://couchdb-80f683.smileupps.com/classlist/"+handleClassListCouchJSON.Rows[0].Id)
+	response,_ = http.Get(BaseUrl+"/classlist/"+handleClassListCouchJSON.Rows[0].Id)
 	defer response.Body.Close()
 	decoder = json.NewDecoder(response.Body)
 	decoder.Decode(&classListFull)
@@ -204,7 +205,7 @@ func DeleteClass(rw http.ResponseWriter, r *http.Request) {
 	decoder = json.NewDecoder(response.Body)
 	decoder.Decode(&handleBluetoothIdCouchJSON)
 	//Using record id get rev
-	response,_ = http.Get("https://couchdb-80f683.smileupps.com/bluetoothid/"+handleBluetoothIdCouchJSON.Rows[0].Id)
+	response,_ = http.Get(BaseUrl+"/bluetoothid/"+handleBluetoothIdCouchJSON.Rows[0].Id)
 	defer response.Body.Close()
 	decoder = json.NewDecoder(response.Body)
 	decoder.Decode(&bluetoothIdFull)

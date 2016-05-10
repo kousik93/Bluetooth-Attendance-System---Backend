@@ -62,7 +62,7 @@ var rowReturnEnrolled RowReturnEnrolled
 
 //Get Unique UUID from CouchDB
 func getUUID() string{
-	response,_ := http.Get("https://couchdb-80f683.smileupps.com/_uuids")
+	response,_ := http.Get(BaseUrl+"/_uuids")
 	defer response.Body.Close()
 	decoder := json.NewDecoder(response.Body)
 	err := decoder.Decode(&uniqueid)

@@ -72,7 +72,7 @@ func createBluetoothId(){
 func main(){
 
 	//BASE URL for CouchDB. Curling this URL should give a welcome message
-	BaseUrl="https://admin:9631aa6374e6@couchdb-80f683.smileupps.com"
+	BaseUrl="http://kousik93:kousiksundar@ec2-54-153-8-24.us-west-1.compute.amazonaws.com:5984"
 
 	DesignDocStudentList=`{"_id": "_design/getlistdata","views": {"studentname": {"map": "function(doc){ emit(doc.studentid, doc.studentname)}"},"studentenrolled": {"map": "function(doc){ emit(doc.studentid, doc.regclasses)}"}}}`
 	DesignDocStudentProfile=`{"_id": "_design/studentdetails","views": {"studentregistered": {"map": "function(doc){ emit(doc.studentid)}"},"studentpassword": {"map": "function(doc){ emit(doc.studentid, doc.password)}"}}}`
