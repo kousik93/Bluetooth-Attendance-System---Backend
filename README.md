@@ -1,11 +1,9 @@
-School Attendance System using Bluetooth Low Energy
+##School Attendance System using Bluetooth Low Energy
 
 
-The aim of the project is to design an attendance system for schools which utilizes a Raspberry Pi or BLE chip and the student's Mobile phone for authentication and marking attendance. This is a part of my CMPE273 final project. The Android application and the Web UI was created by my other teammates. 
+The aim of the project is to design an attendance system for schools which utilizes a Raspberry Pi or BLE chip and the student's Mobile phone for authentication and marking attendance. 
 
-
-
-Components:
+###Components:
 
 * Web UI – For School Administration
 * Mobile Client – For the students
@@ -15,9 +13,9 @@ Components:
 
 
 
-Flow :
+###Flow :
 
-General - 
+####General - 
 
 * Use InitializeCouchDB.go to initialize and set up your freshly installed CouchDb instance
 
@@ -33,7 +31,7 @@ General -
 * The Administration can add and delete class and students on the fly from the web UI
 
 
-Student Changes Mobile Device -
+####Student Changes Mobile Device -
 
 * Student has to be added by the Administration
 * Student Registers using a password on the mobile device
@@ -43,7 +41,7 @@ Student Changes Mobile Device -
 
 
 
-BackEnd Server 
+###BackEnd Server 
 
 The server consists of 4 files. 
 
@@ -56,7 +54,7 @@ The server consists of 4 files.
 * InitializeCouchDB -
 	This script completely initializes the newly installed Couch DB server with the required Database names and Structures. Hence you dont need to rely on a preprepared and pre setup  Database and you can convert any freshly installed CouchDB database to support your system.
 
-API Documentation
+###API Documentation
 
 The Documentation consists of the following files:
 
@@ -75,6 +73,6 @@ These documents will explain everything for you. You have to go through all of t
 
 
 
-During Demo
+###Demo
 
-During the demo in class, we installed our GO servers in EC2 instances and load balanced between them.
+During the demo in class, we installed our GO servers and CouchDB servers in EC2 instances and load balanced between them. The instannces since then have been terminated and IPs are no longer valid.
