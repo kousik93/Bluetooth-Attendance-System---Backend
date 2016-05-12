@@ -222,7 +222,7 @@ func DeleteClass(rw http.ResponseWriter, r *http.Request) {
 func main(){
 
 	//BASE URL for CouchDB. Curling this URL should give a welcome message
-	BaseUrl="https://admin:9631aa6374e6@couchdb-80f683.smileupps.com"
+	BaseUrl=""
 
 	NewDesignDoc=`{"_id": "_design/classattendance","views": {"isstudentpresent": {"map": "function(doc){ emit(doc.studentid, doc.studentid)}"}}}`
 
